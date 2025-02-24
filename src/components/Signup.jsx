@@ -1,4 +1,4 @@
-import { auth, provider, signInWithPopup } from "../utils/firebase";
+import { auth, provider, signInWithPopup, signInWithRedirect } from "../utils/firebase";
 import googleLogo from "../assets/google_logo.png";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "@/utils/authSlice";
@@ -10,23 +10,39 @@ const Signup = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [popupBlocked, setPopupBlocked] = useState(false); // To detect popup block
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const { user } = await signInWithPopup(auth, provider);
-      const { accessToken, displayName, email, photoURL } = user;
+      const result = await signInWithPopup(auth, provider);
+      if (!result) {
+        setPopupBlocked(true);
+        throw new Error("Popup was blocked or closed immediately.");
+      }
+
+      const { accessToken, displayName, email, photoURL } = result.user;
       const userData = { accessToken, displayName, email, photoURL };
-      console.log("User Info:", user);
       sessionStorage.setItem("user", JSON.stringify(userData));
 
       dispatch(login(userData));
     } catch (error) {
-      console.error("Error signing in:", error);
+      console.error("Google Sign-In Error:", error);
+      if (error.message.includes("Popup was blocked")) {
+        console.log("Switching to Redirect-based login...");
+        setPopupBlocked(true);
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  // If popup is blocked, fallback to `signInWithRedirect`
+  useEffect(() => {
+    if (popupBlocked) {
+      signInWithRedirect(auth, provider);
+    }
+  }, [popupBlocked]);
 
   useEffect(() => {
     if (user) {
