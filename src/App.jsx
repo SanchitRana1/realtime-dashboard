@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import store from './utils/appStore';
 import Dashboard from './components/Dashboard';
-import SignUp from './components/SignUp';
+import Signup from './components/Signup';
 import PrivateRoute from './components/PrivateRoute';
 import Loading from './components/Loading';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -15,7 +15,7 @@ function App() {
         <Router>
           <Suspense fallback={<Loading />}>
               <Routes>
-                <Route path="/" element={<SignUp />} />
+                <Route path="/" element={<Signup />} />
                 <Route
                   path="/dashboard"
                   element={
